@@ -46,16 +46,16 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
     .then((data) => {
       const score = data.lighthouseResult.categories.performance.score * 100;
       const fcp =
-        data.lighthouseResult.audits["first-contentful-paint"].displayValue ||
+        data.lighthouseResult.audits["first-contentful-paint"].numericValue ||
         "error";
       const lcp =
-        data.lighthouseResult.audits["largest-contentful-paint"].displayValue ||
+        data.lighthouseResult.audits["largest-contentful-paint"].numericValue ||
         "error";
       const tbt =
-        data.lighthouseResult.audits["total-blocking-time"].displayValue ||
+        data.lighthouseResult.audits["total-blocking-time"].numericValue ||
         "error";
       const cls =
-        data.lighthouseResult.audits["cumulative-layout-shift"].displayValue ||
+        data.lighthouseResult.audits["cumulative-layout-shift"].numericValue ||
         "error";
       const screenshot = data.lighthouseResult.audits["final-screenshot"]
         ? data.lighthouseResult.audits["final-screenshot"].details.data
@@ -74,18 +74,10 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       const newRow = `
                 <tr>
                     <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
-                    <td class="${
-                      fcp === "error" ? "error-cell" : ""
-                    }">${fcp}</td>
-                    <td class="${
-                      lcp === "error" ? "error-cell" : ""
-                    }">${lcp}</td>
-                    <td class="${
-                      tbt === "error" ? "error-cell" : ""
-                    }">${tbt}</td>
-                    <td class="${
-                      cls === "error" ? "error-cell" : ""
-                    }">${cls}</td>
+                    <td class="${getPerformanceClass(fcp, "fcp")}">${fcp}</td>
+                    <td class="${getPerformanceClass(lcp, "lcp")}">${lcp}</td>
+                    <td class="${getPerformanceClass(tbt, "tbt")}">${tbt}</td>
+                    <td class="${getPerformanceClass(cls, "cls")}">${cls}</td>
                 </tr>
             `;
       metricsTableBody.insertAdjacentHTML("afterbegin", newRow);
@@ -113,6 +105,30 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       submitButton.disabled = false; // Розблокувати кнопку у разі помилки
       startCountdown(interval); // Запустити таймер знову у разі помилки
     });
+}
+
+function getPerformanceClass(value, metric) {
+  if (value === "error") {
+    return "error-cell";
+  }
+
+  switch (metric) {
+    case "fcp":
+    case "lcp":
+      if (value <= 1000) return "fast";
+      if (value <= 2500) return "average";
+      return "slow";
+    case "tbt":
+      if (value <= 300) return "fast";
+      if (value <= 600) return "average";
+      return "slow";
+    case "cls":
+      if (value <= 0.1) return "fast";
+      if (value <= 0.25) return "average";
+      return "slow";
+    default:
+      return "";
+  }
 }
 
 function startCountdown(duration) {

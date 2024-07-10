@@ -42,6 +42,21 @@ th {
   color: #000 !important;
 }
 
+.fast {
+  background-color: #d4edda !important; /* зелений */
+  color: #155724 !important;
+}
+
+.average {
+  background-color: #fff3cd !important; /* жовтий */
+  color: #856404 !important;
+}
+
+.slow {
+  background-color: #f8d7da !important; /* червоний */
+  color: #721c24 !important;
+}
+
 a {
   color: #007bff;
   text-decoration: underline;
