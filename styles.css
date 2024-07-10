@@ -36,3 +36,8 @@ th {
   max-width: 100%;
   height: auto;
 }
+
+.error-cell {
+  background-color: #f8d7da;
+  color: #721c24;
+}

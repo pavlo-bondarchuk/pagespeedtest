@@ -6,8 +6,16 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
 
-  loadingSpinner.classList.remove("d-none"); // Показати спіннер
-  statusMessage.innerHTML = ""; // Очистити повідомлення
+  // Показати спіннер і очистити повідомлення
+  loadingSpinner.classList.remove("d-none");
+  statusMessage.innerHTML = "";
+
+  // Очистити результати
+  document.getElementById("performanceScore").innerText = "";
+  const metricsTableBody = document.getElementById("metricsTableBody");
+  metricsTableBody.innerHTML = "";
+  document.getElementById("screenshotContainer").classList.add("d-none");
+  document.getElementById("screenshot").src = "";
 
   fetchPageSpeedInsights(url, apiKey, strategy);
   setInterval(() => fetchPageSpeedInsights(url, apiKey, strategy), 300000); // Оновлення кожні 5 хвилин
@@ -23,15 +31,20 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
     .then((data) => {
       const score = data.lighthouseResult.categories.performance.score * 100;
       const fcp =
-        data.lighthouseResult.audits["first-contentful-paint"].displayValue;
+        data.lighthouseResult.audits["first-contentful-paint"].displayValue ||
+        "error";
       const lcp =
-        data.lighthouseResult.audits["largest-contentful-paint"].displayValue;
+        data.lighthouseResult.audits["largest-contentful-paint"].displayValue ||
+        "error";
       const tbt =
-        data.lighthouseResult.audits["total-blocking-time"].displayValue;
+        data.lighthouseResult.audits["total-blocking-time"].displayValue ||
+        "error";
       const cls =
-        data.lighthouseResult.audits["cumulative-layout-shift"].displayValue;
-      const screenshot =
-        data.lighthouseResult.audits["final-screenshot"].details.data;
+        data.lighthouseResult.audits["cumulative-layout-shift"].displayValue ||
+        "error";
+      const screenshot = data.lighthouseResult.audits["final-screenshot"]
+        ? data.lighthouseResult.audits["final-screenshot"].details.data
+        : "";
 
       document.getElementById(
         "performanceScore"
@@ -39,22 +52,34 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
       const metricsTableBody = document.getElementById("metricsTableBody");
       metricsTableBody.innerHTML = `
                 <tr>
-                    <td>${fcp}</td>
-                    <td>${lcp}</td>
-                    <td>${tbt}</td>
-                    <td>${cls}</td>
+                    <td class="${
+                      fcp === "error" ? "error-cell" : ""
+                    }">${fcp}</td>
+                    <td class="${
+                      lcp === "error" ? "error-cell" : ""
+                    }">${lcp}</td>
+                    <td class="${
+                      tbt === "error" ? "error-cell" : ""
+                    }">${tbt}</td>
+                    <td class="${
+                      cls === "error" ? "error-cell" : ""
+                    }">${cls}</td>
                 </tr>
             `;
-      document.getElementById("screenshot").src = screenshot;
-      document.getElementById("screenshotContainer").classList.remove("d-none");
-      loadingSpinner.classList.add("d-none"); // Приховати спіннер
+      if (screenshot) {
+        document.getElementById("screenshot").src = screenshot;
+        document
+          .getElementById("screenshotContainer")
+          .classList.remove("d-none");
+      }
+      loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
-        '<div class="alert alert-success" role="alert">Done</div>'; // Показати повідомлення про успіх
+        '<div class="alert alert-success" role="alert">Done</div>';
     })
     .catch((error) => {
       console.error("Error:", error);
-      loadingSpinner.classList.add("d-none"); // Приховати спіннер у разі помилки
+      loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
-        '<div class="alert alert-danger" role="alert">Error</div>'; // Показати повідомлення про помилку
+        '<div class="alert alert-danger" role="alert">Error</div>';
     });
 }
