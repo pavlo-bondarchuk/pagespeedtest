@@ -62,9 +62,10 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
         : "";
 
       const currentTime = new Date().toLocaleTimeString();
-      const testUrl = `https://pagespeed.web.dev/analysis/${encodeURIComponent(
-        url
-      )}/zcdeimxovo?form_factor=${strategy}`;
+      const encodedUrl = encodeURIComponent(url)
+        .replace(/%3A/g, "")
+        .replace(/%2F/g, "-");
+      const testUrl = `https://pagespeed.web.dev/analysis/${encodedUrl}/ltkm04qi0t?form_factor=${strategy}`;
 
       document.getElementById(
         "performanceScore"
