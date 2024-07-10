@@ -1,6 +1,15 @@
 let intervalId;
 const countdownElement = document.getElementById("countdown");
 
+// Додати версію сторінки та час оновлення
+document.addEventListener("DOMContentLoaded", () => {
+  const version = "1.3.4";
+  const lastUpdated = new Date(document.lastModified).toLocaleTimeString();
+
+  document.getElementById("pageVersion").textContent = version;
+  document.getElementById("lastUpdated").textContent = lastUpdated;
+});
+
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
   startTest();
