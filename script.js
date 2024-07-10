@@ -36,6 +36,10 @@ function startTest() {
   fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval);
 }
 
+function generateHash() {
+  return Math.random().toString(36).substr(2, 9);
+}
+
 function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     url
@@ -65,7 +69,8 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       const encodedUrl = encodeURIComponent(url)
         .replace(/%3A/g, "")
         .replace(/%2F/g, "-");
-      const testUrl = `https://pagespeed.web.dev/analysis/${encodedUrl}/ltkm04qi0t?form_factor=${strategy}`;
+      const hash = generateHash();
+      const testUrl = `https://pagespeed.web.dev/analysis/${encodedUrl}/${hash}?form_factor=${strategy}`;
 
       document.getElementById(
         "performanceScore"
