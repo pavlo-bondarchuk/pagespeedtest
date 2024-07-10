@@ -30,21 +30,27 @@
         </form>
         <div id="results" class="mt-5">
             <div id="performanceScore" class="h3"></div>
-            <table class="table mt-3">
-                <thead class="table-light">
-                    <tr>
-                        <th>FCP</th>
-                        <th>LCP</th>
-                        <th>TBT</th>
-                        <th>CLS</th>
-                    </tr>
-                </thead>
-                <tbody id="metricsTableBody">
-                </tbody>
-            </table>
-            <div id="screenshotContainer" class="mt-3">
-                <h3>Page Screenshot</h3>
-                <img id="screenshot" class="img-fluid" alt="Page Screenshot">
+            <div class="row">
+                <div class="col-md-8">
+                    <table class="table mt-3">
+                        <thead class="table-light">
+                            <tr>
+                                <th>FCP</th>
+                                <th>LCP</th>
+                                <th>TBT</th>
+                                <th>CLS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <div id="screenshotContainer" class="mt-3 d-none">
+                        <h3>Page Screenshot</h3>
+                        <img id="screenshot" class="img-fluid" alt="Page Screenshot">
+                    </div>
+                </div>
             </div>
         </div>
     </div>

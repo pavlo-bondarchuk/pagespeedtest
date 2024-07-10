@@ -40,6 +40,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
                 </tr>
             `;
       document.getElementById("screenshot").src = screenshot;
+      document.getElementById("screenshotContainer").classList.remove("d-none");
     })
     .catch((error) => console.error("Error:", error));
 }
