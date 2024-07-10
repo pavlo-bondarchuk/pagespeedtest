@@ -58,9 +58,9 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
         : "";
 
       const currentTime = new Date().toLocaleTimeString();
-      const testUrl = `https://pagespeed.web.dev/?url=${encodeURIComponent(
+      const testUrl = `https://pagespeed.web.dev/analysis/${encodeURIComponent(
         url
-      )}&tab=${strategy === "desktop" ? "desktop" : "mobile"}`;
+      )}/zcdeimxovo?form_factor=${strategy}`;
 
       document.getElementById(
         "performanceScore"
@@ -68,7 +68,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
       const metricsTableBody = document.getElementById("metricsTableBody");
       const newRow = `
                 <tr>
-                    <td><a href="${testUrl}" target="_blank">${currentTime}</td>
+                    <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
                     <td class="${
                       fcp === "error" ? "error-cell" : ""
                     }">${fcp}</td>
