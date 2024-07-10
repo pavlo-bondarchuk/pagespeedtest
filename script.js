@@ -20,7 +20,7 @@ function startTest() {
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
   const submitButton = document.querySelector('button[type="submit"]');
-  const interval = parseInt(document.getElementById("interval").value) * 60; // Перевести в секунди
+  const interval = parseInt(document.getElementById("interval").value); // Значення в секундах вже з селектора
 
   // Показати спіннер і очистити повідомлення
   loadingSpinner.classList.remove("d-none");
