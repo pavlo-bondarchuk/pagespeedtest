@@ -2,14 +2,15 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
   const url = document.getElementById("url").value;
   const apiKey = document.getElementById("apiKey").value;
-  fetchPageSpeedInsights(url, apiKey);
-  setInterval(() => fetchPageSpeedInsights(url, apiKey), 300000);
+  const strategy = document.getElementById("strategy").value;
+  fetchPageSpeedInsights(url, apiKey, strategy);
+  setInterval(() => fetchPageSpeedInsights(url, apiKey, strategy), 300000); // Оновлення кожні 5 хвилин
 });
 
-function fetchPageSpeedInsights(url, apiKey) {
+function fetchPageSpeedInsights(url, apiKey, strategy) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     url
-  )}&key=${apiKey}`;
+  )}&key=${apiKey}&strategy=${strategy}`;
 
   fetch(apiUrl)
     .then((response) => response.json())
@@ -23,6 +24,8 @@ function fetchPageSpeedInsights(url, apiKey) {
         data.lighthouseResult.audits["total-blocking-time"].displayValue;
       const cls =
         data.lighthouseResult.audits["cumulative-layout-shift"].displayValue;
+      const screenshot =
+        data.lighthouseResult.audits["final-screenshot"].details.data;
 
       document.getElementById(
         "performanceScore"
@@ -36,6 +39,7 @@ function fetchPageSpeedInsights(url, apiKey) {
                     <td>${cls}</td>
                 </tr>
             `;
+      document.getElementById("screenshot").src = screenshot;
     })
     .catch((error) => console.error("Error:", error));
 }

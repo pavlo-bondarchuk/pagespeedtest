@@ -27,3 +27,12 @@ td {
 th {
   background-color: #f4f4f4;
 }
+
+#screenshotContainer {
+  margin-top: 20px;
+}
+
+#screenshot {
+  max-width: 100%;
+  height: auto;
+}
