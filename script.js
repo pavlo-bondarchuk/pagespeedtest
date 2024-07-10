@@ -1,3 +1,5 @@
+let intervalId;
+
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
   const url = document.getElementById("url").value;
@@ -12,13 +14,13 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
 
   // Очистити результати
   document.getElementById("performanceScore").innerText = "";
-  const metricsTableBody = document.getElementById("metricsTableBody");
-  metricsTableBody.innerHTML = "";
   document.getElementById("screenshotContainer").classList.add("d-none");
   document.getElementById("screenshot").src = "";
 
+  clearInterval(intervalId);
+  startCountdown();
+
   fetchPageSpeedInsights(url, apiKey, strategy);
-  setInterval(() => fetchPageSpeedInsights(url, apiKey, strategy), 300000); // Оновлення кожні 5 хвилин
 });
 
 function fetchPageSpeedInsights(url, apiKey, strategy) {
@@ -46,12 +48,15 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
         ? data.lighthouseResult.audits["final-screenshot"].details.data
         : "";
 
+      const currentTime = new Date().toLocaleTimeString();
+
       document.getElementById(
         "performanceScore"
       ).innerText = `Performance Score: ${score}`;
       const metricsTableBody = document.getElementById("metricsTableBody");
-      metricsTableBody.innerHTML = `
+      const newRow = `
                 <tr>
+                    <td>${currentTime}</td>
                     <td class="${
                       fcp === "error" ? "error-cell" : ""
                     }">${fcp}</td>
@@ -66,12 +71,15 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
                     }">${cls}</td>
                 </tr>
             `;
+      metricsTableBody.insertAdjacentHTML("afterbegin", newRow);
+
       if (screenshot) {
         document.getElementById("screenshot").src = screenshot;
         document
           .getElementById("screenshotContainer")
           .classList.remove("d-none");
       }
+
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-success" role="alert">Done</div>';
@@ -82,4 +90,31 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
       statusMessage.innerHTML =
         '<div class="alert alert-danger" role="alert">Error</div>';
     });
+}
+
+function startCountdown() {
+  const countdownElement = document.getElementById("countdown");
+  const duration = 300; // 5 хвилин
+  let timeRemaining = duration;
+
+  function updateCountdown() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    countdownElement.innerHTML = `Next test in: ${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+    } else {
+      clearInterval(intervalId);
+      const url = document.getElementById("url").value;
+      const apiKey = document.getElementById("apiKey").value;
+      const strategy = document.getElementById("strategy").value;
+      fetchPageSpeedInsights(url, apiKey, strategy);
+      startCountdown();
+    }
+  }
+
+  updateCountdown();
+  intervalId = setInterval(updateCountdown, 1000);
 }
