@@ -1,6 +1,5 @@
 let intervalId;
 const countdownElement = document.getElementById("countdown");
-const duration = 300; // 5 хвилин
 
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
@@ -12,6 +11,7 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
   const submitButton = document.querySelector('button[type="submit"]');
+  const interval = parseInt(document.getElementById("interval").value) * 60; // Перевести в секунди
 
   // Показати спіннер і очистити повідомлення
   loadingSpinner.classList.remove("d-none");
@@ -24,7 +24,7 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   document.getElementById("screenshot").src = "";
 
   clearInterval(intervalId);
-  fetchPageSpeedInsights(url, apiKey, strategy, submitButton);
+  fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval);
 });
 
 document.getElementById("strategy").addEventListener("change", function () {
@@ -32,7 +32,7 @@ document.getElementById("strategy").addEventListener("change", function () {
   strategyLabel.innerText = this.checked ? "Desktop Test" : "Mobile Test";
 });
 
-function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
+function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     url
   )}&key=${apiKey}&strategy=${strategy}`;
@@ -96,7 +96,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
       statusMessage.innerHTML =
         '<div class="alert alert-success" role="alert">Done</div>';
       submitButton.disabled = false; // Розблокувати кнопку
-      startCountdown();
+      startCountdown(interval);
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -107,7 +107,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
     });
 }
 
-function startCountdown() {
+function startCountdown(duration) {
   let timeRemaining = duration;
 
   function updateCountdown() {
@@ -125,11 +125,13 @@ function startCountdown() {
       const strategy = document.getElementById("strategy").checked
         ? "desktop"
         : "mobile";
+      const interval = parseInt(document.getElementById("interval").value) * 60; // Перевести в секунди
       fetchPageSpeedInsights(
         url,
         apiKey,
         strategy,
-        document.querySelector('button[type="submit"]')
+        document.querySelector('button[type="submit"]'),
+        interval
       );
     }
   }
