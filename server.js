@@ -3,12 +3,14 @@ const fetch = require("node-fetch");
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.static("public"));
+app.use(express.static("."));
 
 app.get("/api/pagespeed", async (req, res) => {
   const apiKey = process.env.PAGESPEED_API_KEY;
   const url = req.query.url;
-  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&key=${apiKey}`;
+  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
+    url
+  )}&key=${apiKey}`;
 
   try {
     const response = await fetch(apiUrl);
