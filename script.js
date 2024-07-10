@@ -1,12 +1,15 @@
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
   const url = document.getElementById("url").value;
-  fetchPageSpeedInsights(url);
-  setInterval(() => fetchPageSpeedInsights(url), 300000); // Оновлення кожні 5 хвилин
+  const apiKey = document.getElementById("apiKey").value;
+  fetchPageSpeedInsights(url, apiKey);
+  setInterval(() => fetchPageSpeedInsights(url, apiKey), 300000);
 });
 
-function fetchPageSpeedInsights(url) {
-  const apiUrl = `/api/pagespeed?url=${encodeURIComponent(url)}`;
+function fetchPageSpeedInsights(url, apiKey) {
+  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
+    url
+  )}&key=${apiKey}`;
 
   fetch(apiUrl)
     .then((response) => response.json())
