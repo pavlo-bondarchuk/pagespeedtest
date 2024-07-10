@@ -3,9 +3,10 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   const url = document.getElementById("url").value;
   const apiKey = document.getElementById("apiKey").value;
   const strategy = document.getElementById("strategy").value;
-  const loadingSpinner = document.getElementById("loadingSpinner");
+  const statusMessage = document.getElementById("statusMessage");
 
-  loadingSpinner.classList.remove("d-none"); // Показати спіннер
+  statusMessage.innerHTML =
+    '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
 
   fetchPageSpeedInsights(url, apiKey, strategy);
   setInterval(() => fetchPageSpeedInsights(url, apiKey, strategy), 300000); // Оновлення кожні 5 хвилин
@@ -45,10 +46,12 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
             `;
       document.getElementById("screenshot").src = screenshot;
       document.getElementById("screenshotContainer").classList.remove("d-none");
-      document.getElementById("loadingSpinner").classList.add("d-none"); // Приховати спіннер
+      document.getElementById("statusMessage").innerHTML =
+        '<span class="text-success">Done</span>'; // Змінити на "Done"
     })
     .catch((error) => {
       console.error("Error:", error);
-      document.getElementById("loadingSpinner").classList.add("d-none"); // Приховати спіннер у разі помилки
+      document.getElementById("statusMessage").innerHTML =
+        '<span class="text-danger">Error</span>'; // Показати помилку
     });
 }
