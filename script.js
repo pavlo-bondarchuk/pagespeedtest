@@ -9,10 +9,12 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   const strategy = document.getElementById("strategy").value;
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
+  const submitButton = document.querySelector('button[type="submit"]');
 
   // Показати спіннер і очистити повідомлення
   loadingSpinner.classList.remove("d-none");
   statusMessage.innerHTML = "";
+  submitButton.disabled = true; // Заблокувати кнопку
 
   // Очистити результати
   document.getElementById("performanceScore").innerText = "";
@@ -20,10 +22,10 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   document.getElementById("screenshot").src = "";
 
   clearInterval(intervalId);
-  fetchPageSpeedInsights(url, apiKey, strategy);
+  fetchPageSpeedInsights(url, apiKey, strategy, submitButton);
 });
 
-function fetchPageSpeedInsights(url, apiKey, strategy) {
+function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     url
   )}&key=${apiKey}&strategy=${strategy}`;
@@ -83,6 +85,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-success" role="alert">Done</div>';
+      submitButton.disabled = false; // Розблокувати кнопку
       startCountdown();
     })
     .catch((error) => {
@@ -90,6 +93,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-danger" role="alert">Error</div>';
+      submitButton.disabled = false; // Розблокувати кнопку у разі помилки
     });
 }
 
@@ -109,7 +113,12 @@ function startCountdown() {
       const url = document.getElementById("url").value;
       const apiKey = document.getElementById("apiKey").value;
       const strategy = document.getElementById("strategy").value;
-      fetchPageSpeedInsights(url, apiKey, strategy);
+      fetchPageSpeedInsights(
+        url,
+        apiKey,
+        strategy,
+        document.querySelector('button[type="submit"]')
+      );
     }
   }
 
