@@ -38,6 +38,6 @@ th {
 }
 
 .error-cell {
-  background-color: #f8d7da;
-  color: #000;
+  background-color: #f8d7da !important;
+  color: #000 !important;
 }
