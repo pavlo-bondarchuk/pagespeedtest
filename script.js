@@ -1,4 +1,6 @@
 let intervalId;
+const countdownElement = document.getElementById("countdown");
+const duration = 300; // 5 хвилин
 
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
@@ -18,8 +20,6 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   document.getElementById("screenshot").src = "";
 
   clearInterval(intervalId);
-  startCountdown();
-
   fetchPageSpeedInsights(url, apiKey, strategy);
 });
 
@@ -83,6 +83,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-success" role="alert">Done</div>';
+      startCountdown();
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -93,8 +94,6 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
 }
 
 function startCountdown() {
-  const countdownElement = document.getElementById("countdown");
-  const duration = 300; // 5 хвилин
   let timeRemaining = duration;
 
   function updateCountdown() {
@@ -111,7 +110,6 @@ function startCountdown() {
       const apiKey = document.getElementById("apiKey").value;
       const strategy = document.getElementById("strategy").value;
       fetchPageSpeedInsights(url, apiKey, strategy);
-      startCountdown();
     }
   }
 
