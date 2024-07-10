@@ -46,16 +46,16 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
     .then((data) => {
       const score = data.lighthouseResult.categories.performance.score * 100;
       const fcp =
-        data.lighthouseResult.audits["first-contentful-paint"].numericValue ||
+        data.lighthouseResult.audits["first-contentful-paint"].displayValue ||
         "error";
       const lcp =
-        data.lighthouseResult.audits["largest-contentful-paint"].numericValue ||
+        data.lighthouseResult.audits["largest-contentful-paint"].displayValue ||
         "error";
       const tbt =
-        data.lighthouseResult.audits["total-blocking-time"].numericValue ||
+        data.lighthouseResult.audits["total-blocking-time"].displayValue ||
         "error";
       const cls =
-        data.lighthouseResult.audits["cumulative-layout-shift"].numericValue ||
+        data.lighthouseResult.audits["cumulative-layout-shift"].displayValue ||
         "error";
       const screenshot = data.lighthouseResult.audits["final-screenshot"]
         ? data.lighthouseResult.audits["final-screenshot"].details.data
@@ -112,19 +112,21 @@ function getPerformanceClass(value, metric) {
     return "error-cell";
   }
 
+  const numValue = parseFloat(value.replace("s", "").replace(",", "."));
+
   switch (metric) {
     case "fcp":
     case "lcp":
-      if (value <= 1000) return "fast";
-      if (value <= 2500) return "average";
+      if (numValue <= 1.0) return "fast";
+      if (numValue <= 2.5) return "average";
       return "slow";
     case "tbt":
-      if (value <= 300) return "fast";
-      if (value <= 600) return "average";
+      if (numValue <= 0.3) return "fast";
+      if (numValue <= 0.6) return "average";
       return "slow";
     case "cls":
-      if (value <= 0.1) return "fast";
-      if (value <= 0.25) return "average";
+      if (numValue <= 0.1) return "fast";
+      if (numValue <= 0.25) return "average";
       return "slow";
     default:
       return "";
