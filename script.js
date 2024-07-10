@@ -27,6 +27,11 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   fetchPageSpeedInsights(url, apiKey, strategy, submitButton);
 });
 
+document.getElementById("strategy").addEventListener("change", function () {
+  const strategyLabel = document.getElementById("strategyLabel");
+  strategyLabel.innerText = this.checked ? "Desktop Test" : "Mobile Test";
+});
+
 function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     url
@@ -63,7 +68,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
       const metricsTableBody = document.getElementById("metricsTableBody");
       const newRow = `
                 <tr>
-                    <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
+                    <td><a href="${testUrl}" target="_blank">${currentTime}</td>
                     <td class="${
                       fcp === "error" ? "error-cell" : ""
                     }">${fcp}</td>
