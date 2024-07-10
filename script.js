@@ -62,8 +62,10 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
         : "";
 
       const currentTime = new Date().toLocaleTimeString();
-      const testId = data.id; // Отримання хешу з відповіді API
-      const testUrl = `https://pagespeed.web.dev/analysis/${testId}?form_factor=${strategy}`;
+      const analysisUTCTimestamp = data.analysisUTCTimestamp; // Отримання хешу з відповіді API
+      const testUrl = `https://pagespeed.web.dev/analysis/${encodeURIComponent(
+        url
+      )}/${analysisUTCTimestamp}?form_factor=${strategy}`;
 
       document.getElementById(
         "performanceScore"
