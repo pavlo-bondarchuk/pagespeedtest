@@ -3,6 +3,10 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   const url = document.getElementById("url").value;
   const apiKey = document.getElementById("apiKey").value;
   const strategy = document.getElementById("strategy").value;
+  const loadingSpinner = document.getElementById("loadingSpinner");
+
+  loadingSpinner.classList.remove("d-none"); // Показати спіннер
+
   fetchPageSpeedInsights(url, apiKey, strategy);
   setInterval(() => fetchPageSpeedInsights(url, apiKey, strategy), 300000); // Оновлення кожні 5 хвилин
 });
@@ -41,6 +45,10 @@ function fetchPageSpeedInsights(url, apiKey, strategy) {
             `;
       document.getElementById("screenshot").src = screenshot;
       document.getElementById("screenshotContainer").classList.remove("d-none");
+      document.getElementById("loadingSpinner").classList.add("d-none"); // Приховати спіннер
     })
-    .catch((error) => console.error("Error:", error));
+    .catch((error) => {
+      console.error("Error:", error);
+      document.getElementById("loadingSpinner").classList.add("d-none"); // Приховати спіннер у разі помилки
+    });
 }
