@@ -3,6 +3,15 @@ const countdownElement = document.getElementById("countdown");
 
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
+  startTest();
+});
+
+document.getElementById("strategy").addEventListener("change", function () {
+  const strategyLabel = document.getElementById("strategyLabel");
+  strategyLabel.innerText = this.checked ? "Desktop Test" : "Mobile Test";
+});
+
+function startTest() {
   const url = document.getElementById("url").value;
   const apiKey = document.getElementById("apiKey").value;
   const strategy = document.getElementById("strategy").checked
@@ -25,12 +34,7 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
 
   clearInterval(intervalId);
   fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval);
-});
-
-document.getElementById("strategy").addEventListener("change", function () {
-  const strategyLabel = document.getElementById("strategyLabel");
-  strategyLabel.innerText = this.checked ? "Desktop Test" : "Mobile Test";
-});
+}
 
 function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
@@ -104,6 +108,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       statusMessage.innerHTML =
         '<div class="alert alert-danger" role="alert">Error</div>';
       submitButton.disabled = false; // Розблокувати кнопку у разі помилки
+      startCountdown(interval); // Запустити таймер знову у разі помилки
     });
 }
 
@@ -120,19 +125,7 @@ function startCountdown(duration) {
       timeRemaining--;
     } else {
       clearInterval(intervalId);
-      const url = document.getElementById("url").value;
-      const apiKey = document.getElementById("apiKey").value;
-      const strategy = document.getElementById("strategy").checked
-        ? "desktop"
-        : "mobile";
-      const interval = parseInt(document.getElementById("interval").value) * 60; // Перевести в секунди
-      fetchPageSpeedInsights(
-        url,
-        apiKey,
-        strategy,
-        document.querySelector('button[type="submit"]'),
-        interval
-      );
+      document.querySelector('button[type="submit"]').click();
     }
   }
 
