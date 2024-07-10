@@ -95,6 +95,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       statusMessage.classList.remove("d-none");
       submitButton.disabled = false; // Розблокувати кнопку
       startCountdown(interval);
+      scrollToTable(); // Прокрутка до таблиці
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -152,4 +153,13 @@ function startCountdown(duration) {
 
   updateCountdown();
   intervalId = setInterval(updateCountdown, 1000);
+}
+
+function scrollToTable() {
+  const table = document.querySelector(".table-responsive");
+  const offset = table.getBoundingClientRect().top + window.pageYOffset - 100;
+  window.scrollTo({
+    top: offset,
+    behavior: "smooth",
+  });
 }
