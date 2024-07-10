@@ -62,10 +62,10 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
         : "";
 
       const currentTime = new Date().toLocaleTimeString();
-      const analysisUTCTimestamp = data.analysisUTCTimestamp; // Отримання хешу з відповіді API
-      const testUrl = `https://pagespeed.web.dev/analysis/${encodeURIComponent(
+      const reportId = data.lighthouseResult.id; // Отримання ідентифікатора звіту з відповіді API
+      const testUrl = `https://pagespeed.web.dev/report?url=${encodeURIComponent(
         url
-      )}/${analysisUTCTimestamp}?form_factor=${strategy}`;
+      )}&form_factor=${strategy}&utm_source=PSI&utm_medium=report_card&utm_campaign=progressive-web-apps&utm_term=show-latest&report_id=${reportId}`;
 
       document.getElementById(
         "performanceScore"
