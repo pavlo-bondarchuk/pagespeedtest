@@ -6,7 +6,9 @@ document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
   const url = document.getElementById("url").value;
   const apiKey = document.getElementById("apiKey").value;
-  const strategy = document.getElementById("strategy").value;
+  const strategy = document.getElementById("strategy").checked
+    ? "desktop"
+    : "mobile";
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
   const submitButton = document.querySelector('button[type="submit"]');
@@ -51,6 +53,9 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
         : "";
 
       const currentTime = new Date().toLocaleTimeString();
+      const testUrl = `https://pagespeed.web.dev/?url=${encodeURIComponent(
+        url
+      )}&tab=${strategy === "desktop" ? "desktop" : "mobile"}`;
 
       document.getElementById(
         "performanceScore"
@@ -58,7 +63,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton) {
       const metricsTableBody = document.getElementById("metricsTableBody");
       const newRow = `
                 <tr>
-                    <td>${currentTime}</td>
+                    <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
                     <td class="${
                       fcp === "error" ? "error-cell" : ""
                     }">${fcp}</td>
@@ -112,7 +117,9 @@ function startCountdown() {
       clearInterval(intervalId);
       const url = document.getElementById("url").value;
       const apiKey = document.getElementById("apiKey").value;
-      const strategy = document.getElementById("strategy").value;
+      const strategy = document.getElementById("strategy").checked
+        ? "desktop"
+        : "mobile";
       fetchPageSpeedInsights(
         url,
         apiKey,
