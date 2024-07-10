@@ -24,7 +24,7 @@ function startTest() {
 
   // Показати спіннер і очистити повідомлення
   loadingSpinner.classList.remove("d-none");
-  statusMessage.innerHTML = "";
+  statusMessage.classList.add("d-none");
   submitButton.disabled = true; // Заблокувати кнопку
 
   // Очистити результати
@@ -99,6 +99,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-success" role="alert">Done</div>';
+      statusMessage.classList.remove("d-none");
       submitButton.disabled = false; // Розблокувати кнопку
       startCountdown(interval);
     })
@@ -107,6 +108,7 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
         '<div class="alert alert-danger" role="alert">Error</div>';
+      statusMessage.classList.remove("d-none");
       submitButton.disabled = false; // Розблокувати кнопку у разі помилки
       startCountdown(interval); // Запустити таймер знову у разі помилки
     });
