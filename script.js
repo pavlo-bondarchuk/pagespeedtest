@@ -81,14 +81,15 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       ).innerText = `Performance Score: ${score}`;
       const metricsTableBody = document.getElementById("metricsTableBody");
       const newRow = `
-                <tr>
-                    <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
-                    <td class="${getPerformanceClass(fcp, "fcp")}">${fcp}</td>
-                    <td class="${getPerformanceClass(lcp, "lcp")}">${lcp}</td>
-                    <td class="${getPerformanceClass(tbt, "tbt")}">${tbt}</td>
-                    <td class="${getPerformanceClass(cls, "cls")}">${cls}</td>
-                </tr>
-            `;
+            <tr>
+                <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
+                <td>${score}</td>
+                <td class="${getPerformanceClass(fcp, "fcp")}">${fcp}</td>
+                <td class="${getPerformanceClass(lcp, "lcp")}">${lcp}</td>
+                <td class="${getPerformanceClass(tbt, "tbt")}">${tbt}</td>
+                <td class="${getPerformanceClass(cls, "cls")}">${cls}</td>
+            </tr>
+        `;
       metricsTableBody.insertAdjacentHTML("afterbegin", newRow);
 
       if (screenshot) {
