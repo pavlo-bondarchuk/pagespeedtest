@@ -74,10 +74,6 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       const testUrl = `https://pagespeed.web.dev/report?url=${encodeURIComponent(
         url
       )}&form_factor=${strategy}&utm_source=PSI&utm_medium=report_card&utm_campaign=progressive-web-apps&utm_term=show-latest&report_id=${reportId}`;
-
-      document.getElementById(
-        "performanceScore"
-      ).innerText = `Performance Score: ${score}`;
       const metricsTableBody = document.getElementById("metricsTableBody");
       const newRow = `
             <tr>
