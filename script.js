@@ -17,69 +17,58 @@ document.getElementById("strategy").addEventListener("change", function () {
 // ------------------ MAIN ------------------
 
 async function runCrawl() {
-  const baseUrl = document.getElementById("url").value.trim();
-  const apiKey = document.getElementById("apiKey").value.trim();
+  let baseUrl = document.getElementById("url").value.trim();
+  let apiKey = document.getElementById("apiKey").value.trim();
   const strategy = document.getElementById("strategy").checked
     ? "desktop"
     : "mobile";
+
+  // авто-виправлення найчастішої помилки: ключ у полі URL, а URL у полі key
+  if (/^https?:\/\//i.test(apiKey) && !/^https?:\/\//i.test(baseUrl)) {
+    [baseUrl, apiKey] = [apiKey, baseUrl];
+    console.warn("Heuristic swap: URL <-> API key");
+  }
+  if (!/^https?:\/\//i.test(baseUrl)) baseUrl = "https://" + baseUrl;
+
   const loadingSpinner = document.getElementById("loadingSpinner");
   const statusMessage = document.getElementById("statusMessage");
   const submitButton = document.querySelector('button[type="submit"]');
   const tbody = document.getElementById("metricsTableBody");
 
-  if (!baseUrl) return;
-
-  // UI: start
   isRunning = true;
   loadingSpinner.classList.remove("d-none");
   statusMessage.classList.add("d-none");
   submitButton.disabled = true;
 
-  // необов'язково: очищати старі результати
-  // tbody.innerHTML = "";
-
   let urls = [];
   try {
     urls = await getUrlsFromSitemap(baseUrl);
   } catch (e) {
-    console.warn("Sitemap fetch failed:", e);
+    console.warn(e);
   }
 
   if (!urls.length) {
-    // якщо sitemap не знайдено — тестуємо лише стартову сторінку
     urls = [baseUrl];
     statusMessage.innerHTML =
-      '<div class="alert alert-warning" role="alert">Sitemap not found or blocked by CORS. Running PSI for the start URL only.</div>';
+      '<div class="alert alert-warning" role="alert">Sitemap not found or blocked by CORS. Running only the start URL.</div>';
     statusMessage.classList.remove("d-none");
-  } else {
-    statusMessage.classList.add("d-none");
   }
 
   let done = 0;
-  const total = urls.length;
-
   for (const url of urls) {
-    if (stopRequested) break;
     await fetchPageSpeedInsights(url, apiKey, strategy, tbody);
     done++;
-    // показати прогрес
-    showProgress(`${done}/${total} processed`);
-    // невелика пауза щоб уникати лімітів PSI
+    showProgress(`${done}/${urls.length} processed`);
     await delay(1500);
   }
 
-  // UI: finish
   loadingSpinner.classList.add("d-none");
   submitButton.disabled = false;
   isRunning = false;
-
   showExportButton();
-  showProgress(""); // очистити прогрес
-
+  showProgress("");
   statusMessage.innerHTML = `<div class="alert alert-success" role="alert">Done. Processed ${done} page(s).</div>`;
   statusMessage.classList.remove("d-none");
-
-  // прокрутити до таблиці
   scrollToTable();
 }
 
@@ -190,67 +179,96 @@ function getPerfClassByNumeric(displayText, metric, numericValue) {
 // ------------------ SITEMAP ------------------
 
 async function getUrlsFromSitemap(baseUrl) {
-  // якщо користувач одразу дав лінк на sitemap.xml — використовуємо його
   const sitemapUrl = /sitemap\.xml$/i.test(baseUrl)
     ? baseUrl
     : baseUrl.endsWith("/")
     ? `${baseUrl}sitemap.xml`
     : `${baseUrl}/sitemap.xml`;
 
-  const xml = await fetchTextWithCors(sitemapUrl);
-  if (!xml) return [];
+  const txt = await fetchTextWithCors(sitemapUrl);
+  if (!txt) return [];
 
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, "application/xml");
+  // спроба як XML
+  let urls = parseSitemapXML(txt);
+  if (urls.length) return uniqueLimit(urls, 500);
 
-  // sitemap index
-  const sitemapNodes = Array.from(doc.getElementsByTagName("sitemap"));
-  if (sitemapNodes.length) {
-    const all = new Set();
-    for (const sm of sitemapNodes) {
-      const loc = sm.getElementsByTagName("loc")[0]?.textContent?.trim();
-      if (!loc) continue;
-      try {
-        const subXml = await fetchTextWithCors(loc);
-        const subDoc = parser.parseFromString(subXml, "application/xml");
-        for (const locNode of subDoc.getElementsByTagName("loc")) {
-          const u = (locNode.textContent || "").trim();
-          if (u) all.add(u);
-        }
-      } catch (e) {
-        console.warn("Sub-sitemap fetch failed:", loc, e);
-      }
+  // якщо віддали HTML (XSL стилізація) — парсимо посилання на під-sitemap’и з <a>
+  const subMaps = parseSitemapHTMLForSubmaps(txt);
+  if (subMaps.length) {
+    const collected = new Set();
+    for (const sm of subMaps) {
+      const smTxt = await fetchTextWithCors(sm);
+      parseSitemapXML(smTxt).forEach((u) => collected.add(u));
     }
-    return Array.from(all);
+    return uniqueLimit([...collected], 500);
   }
 
-  // urlset
-  const locs = Array.from(doc.getElementsByTagName("loc")).map((n) =>
-    n.textContent.trim()
-  );
-  // безпечна «стеля», щоб не вбити ліміти PSI (змінюй за потреби)
-  return locs.slice(0, 500);
+  return [];
+}
+
+function parseSitemapXML(xmlText) {
+  try {
+    const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+    // якщо є помилки парсингу — повертаємо пусто
+    if (doc.getElementsByTagName("parsererror").length) return [];
+
+    // sitemap index
+    const indexNodes = [...doc.getElementsByTagName("sitemap")];
+    if (indexNodes.length) {
+      return indexNodes
+        .map((n) => n.getElementsByTagName("loc")[0]?.textContent?.trim())
+        .filter(Boolean);
+    }
+    // звичайний urlset
+    const locs = [...doc.getElementsByTagName("loc")].map((n) =>
+      n.textContent.trim()
+    );
+    return locs;
+  } catch {
+    return [];
+  }
+}
+
+// коли видають HTML-сторінку з таблицею лінків на під-sitemap’и
+function parseSitemapHTMLForSubmaps(htmlText) {
+  try {
+    const doc = new DOMParser().parseFromString(htmlText, "text/html");
+    return [...doc.querySelectorAll('a[href*="sitemap"]')]
+      .map((a) => a.getAttribute("href"))
+      .filter(Boolean)
+      .map((href) => normalizeUrl(href));
+  } catch {
+    return [];
+  }
+}
+
+function normalizeUrl(u) {
+  try {
+    return new URL(u, location.href).toString();
+  } catch {
+    return u;
+  }
+}
+
+function uniqueLimit(arr, limit) {
+  const s = new Set(arr);
+  return [...s].slice(0, limit);
 }
 
 async function fetchTextWithCors(url) {
-  try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.text();
-  } catch (e) {
-    // fallback проксі для CORS
+  const tries = [
+    url, // прямий
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://r.jina.ai/http://` + url.replace(/^https?:\/\//i, ""),
+    `https://cors.isomorphic-git.org/${url}`,
+  ];
+  for (const u of tries) {
     try {
-      const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-        url
-      )}`;
-      const r2 = await fetch(proxied);
-      if (!r2.ok) throw new Error(`Proxy HTTP ${r2.status}`);
-      return await r2.text();
-    } catch (e2) {
-      console.warn("CORS fetch failed for:", url, e2);
-      return "";
-    }
+      const r = await fetch(u, { cache: "no-store" });
+      if (r.ok) return await r.text();
+    } catch {}
   }
+  return "";
 }
 
 // ------------------ EXPORT CSV ------------------
