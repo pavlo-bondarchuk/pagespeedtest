@@ -1,14 +1,4 @@
 let intervalId;
-const countdownElement = document.getElementById("countdown");
-
-// Додати версію сторінки та час оновлення
-document.addEventListener("DOMContentLoaded", () => {
-  const version = "1.3.4";
-  const lastUpdated = new Date(document.lastModified).toLocaleTimeString();
-
-  document.getElementById("pageVersion").textContent = version;
-  document.getElementById("lastUpdated").textContent = lastUpdated;
-});
 
 document.getElementById("urlForm").addEventListener("submit", function (event) {
   event.preventDefault();
@@ -36,10 +26,6 @@ function startTest() {
   statusMessage.classList.add("d-none");
   submitButton.disabled = true; // Заблокувати кнопку
 
-  // Очистити результати
-  document.getElementById("screenshotContainer").classList.add("d-none");
-  document.getElementById("screenshot").src = "";
-
   clearInterval(intervalId);
   fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval);
 }
@@ -65,9 +51,6 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
       const cls =
         data.lighthouseResult.audits["cumulative-layout-shift"].displayValue ||
         "error";
-      const screenshot = data.lighthouseResult.audits["final-screenshot"]
-        ? data.lighthouseResult.audits["final-screenshot"].details.data
-        : "";
 
       const currentTime = new Date().toLocaleTimeString();
       const reportId = data.lighthouseResult.id; // Отримання ідентифікатора звіту з відповіді API
@@ -86,13 +69,6 @@ function fetchPageSpeedInsights(url, apiKey, strategy, submitButton, interval) {
             </tr>
         `;
       metricsTableBody.insertAdjacentHTML("afterbegin", newRow);
-
-      if (screenshot) {
-        document.getElementById("screenshot").src = screenshot;
-        document
-          .getElementById("screenshotContainer")
-          .classList.remove("d-none");
-      }
 
       loadingSpinner.classList.add("d-none");
       statusMessage.innerHTML =
