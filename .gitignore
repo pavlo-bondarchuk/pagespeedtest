@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.*
+
+# Build
+dist/
+build/
+
+# Optional npm cache directory
+.npm
+
+# Coverage
+coverage/
+
+# Local environment settings
+.local
+
+# Optional IDE folders
+.idea/
+*.swp
+*.swo
+
+# Codespaces
+*.code-workspace
