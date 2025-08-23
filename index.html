@@ -40,6 +40,32 @@
             >Single URL</label
           >
         </div>
+        <!-- Fallback: список URL при multiple-режимі -->
+        <div id="urlListWrap" class="mb-3 d-none">
+          <label for="urlList" class="form-label">
+            URL list (one per line) — fallback if sitemap is blocked by CORS:
+          </label>
+          <textarea
+            id="urlList"
+            class="form-control"
+            rows="6"
+            placeholder="https://example.com/&#10;https://example.com/page-2/"
+          ></textarea>
+        </div>
+
+        <!-- Проксі для sitemap -->
+        <div id="proxyWrap" class="form-check form-switch mb-3 d-none">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="useProxy"
+            checked
+          />
+          <label class="form-check-label" for="useProxy"
+            >Use proxy to fetch sitemap (avoid CORS)</label
+          >
+        </div>
+
         <div class="form-check form-switch mb-3">
           <input
             class="form-check-input"

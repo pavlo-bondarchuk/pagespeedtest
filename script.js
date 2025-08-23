@@ -20,14 +20,12 @@ document.getElementById("modeToggle").addEventListener("change", function () {
   document.getElementById("modeLabel").innerText = this.checked
     ? "Multiple URLs"
     : "Single URL";
-  // показувати інтервал тільки в single-режимі
-  document
-    .getElementById("intervalWrap")
-    .classList.toggle("d-none", mode === "multiple");
-  // сховати countdown в multiple-режимі
-  document
-    .getElementById("countdown")
-    .classList.toggle("d-none", mode === "multiple");
+
+  const multiple = mode === "multiple";
+  document.getElementById("intervalWrap").classList.toggle("d-none", multiple);
+  document.getElementById("countdown").classList.toggle("d-none", multiple);
+  document.getElementById("urlListWrap").classList.toggle("d-none", !multiple);
+  document.getElementById("proxyWrap").classList.toggle("d-none", !multiple);
 });
 
 // ===== Main entry =====
@@ -61,10 +59,12 @@ async function startTest() {
     await runSingleOnce(baseUrl, apiKey, strategy, submitButton, interval);
   } else {
     // multiple
-    // прибрати попередню кнопку експорту, якщо була
+    const manualList = document.getElementById("urlList").value.trim();
+    const useProxy = document.getElementById("useProxy").checked;
+    // прибрати стару кнопку експорту, якщо була
     const oldBtn = document.getElementById("exportBtn");
     if (oldBtn) oldBtn.remove();
-    await runCrawl(baseUrl, apiKey, strategy);
+    await runCrawl(baseUrl, apiKey, strategy, { useProxy, manualList });
   }
 
   // UI finish (подальші оновлення робляться всередині режимів)
@@ -102,15 +102,22 @@ async function runSingleOnce(url, apiKey, strategy, submitButton, interval) {
 }
 
 // ===== Multiple URLs mode (sitemap crawl) =====
-async function runCrawl(baseUrl, apiKey, strategy) {
+async function runCrawl(baseUrl, apiKey, strategy, { useProxy, manualList }) {
   const statusMessage = document.getElementById("statusMessage");
   const tbody = document.getElementById("metricsTableBody");
 
   let urls = [];
-  try {
-    urls = await getUrlsFromSitemap(baseUrl);
-  } catch (e) {
-    console.warn(e);
+  if (manualList) {
+    urls = manualList
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } else {
+    try {
+      urls = await getUrlsFromSitemap(baseUrl, useProxy);
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   if (!urls.length) {
@@ -247,54 +254,50 @@ function startCountdown(durationSec) {
 }
 
 // ===== Sitemap helpers (multiple mode) =====
-async function getUrlsFromSitemap(baseUrl) {
-  const u = new URL(baseUrl);
+async function getUrlsFromSitemap(baseUrl, useProxy = true) {
+  const u = new URL(
+    /^https?:\/\//i.test(baseUrl) ? baseUrl : "https://" + baseUrl
+  );
   const origin = u.origin;
   const pathPrefix = u.pathname.replace(/\/$/, ""); // напр. "/uk" або ""
 
-  // пробуємо кілька варіантів sitemap
   const candidates = [];
-  // якщо ввели одразу sitemap.xml — використовуємо як є
-  if (/sitemap\.xml$/i.test(baseUrl) || /sitemap_index\.xml$/i.test(baseUrl)) {
+  if (
+    /sitemap(\_|-)index\.xml$/i.test(baseUrl) ||
+    /sitemap\.xml$/i.test(baseUrl)
+  ) {
     candidates.push(baseUrl);
   } else {
-    // 1) за повним шляхом (може існувати для підсайтів)
     if (pathPrefix) candidates.push(`${origin}${pathPrefix}/sitemap.xml`);
-    // 2) у корені сайту (найчастіше)
     candidates.push(`${origin}/sitemap.xml`);
-    // 3) альтернативна назва популярних плагінів
     candidates.push(`${origin}/sitemap_index.xml`);
   }
 
   let txt = "";
   for (const s of candidates) {
-    txt = await fetchTextWithCors(s);
+    txt = await fetchTextWithCors(s, useProxy);
     if (txt) break;
   }
   if (!txt) return [];
 
-  // спочатку пробуємо як XML
   let urls = parseSitemapXML(txt);
   if (!urls.length) {
-    // якщо віддали HTML-сторінку з таблицею під-sitemap’ів
     const subMaps = parseSitemapHTMLForSubmaps(txt);
     if (subMaps.length) {
       const collected = new Set();
       for (const sm of subMaps) {
-        const subTxt = await fetchTextWithCors(sm);
-        parseSitemapXML(subTxt).forEach((u) => collected.add(u));
+        const subTxt = await fetchTextWithCors(sm, useProxy);
+        parseSitemapXML(subTxt).forEach((x) => collected.add(x));
       }
       urls = [...collected];
     }
   }
 
-  // якщо користувач ввів секцію (напр. /uk) — лишаємо лише ці URL
   if (pathPrefix) {
     const prefix = `${origin}${pathPrefix}/`;
     urls = urls.filter((x) => x.startsWith(prefix));
   }
 
-  // ліміт на всяк випадок
   return uniqueLimit(urls, 500);
 }
 
@@ -341,14 +344,13 @@ function uniqueLimit(arr, limit) {
   return [...s].slice(0, limit);
 }
 
-async function fetchTextWithCors(url) {
-  const tries = [
-    // проксі спочатку — щоби уникнути CORS блоків
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+async function fetchTextWithCors(url, useProxy = true) {
+  const proxies = [
     `https://r.jina.ai/http://` + url.replace(/^https?:\/\//i, ""),
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://cors.isomorphic-git.org/${url}`,
-    url, // як остання спроба — прямий запит
   ];
+  const tries = useProxy ? proxies : [url, ...proxies];
   for (const u of tries) {
     try {
       const r = await fetch(u, { cache: "no-store" });
@@ -368,8 +370,7 @@ function showExportButton() {
   btn.addEventListener("click", exportTableToCSV);
 
   const results = document.getElementById("results");
-  // простіше та надійніше: додати кнопку на початок блоку results
-  results.insertAdjacentElement("afterbegin", btn);
+  results.insertAdjacentElement("afterbegin", btn); // не залежимо від внутрішніх дітей
 }
 
 function exportTableToCSV() {
