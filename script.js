@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ===== Main entry =====
 async function startTest() {
+  mode = document.getElementById("modeToggle")?.checked ? "multiple" : "single";
   saveSettings();
   let baseUrl = document.getElementById("url").value.trim();
   let apiKey = document.getElementById("apiKey").value.trim();
@@ -194,6 +195,7 @@ async function safePSI(url, apiKey, strategy, tbody) {
      <td class="error-cell">—</td>
    </tr>`
     );
+    showExportButton();
   }
 }
 
@@ -251,6 +253,7 @@ async function fetchPageSpeedInsights(pageUrl, apiKey, strategy) {
   </tr>
 `;
   tbody.insertAdjacentHTML("afterbegin", rowHtml);
+  showExportButton();
 }
 
 // ===== Classification by numericValue =====
