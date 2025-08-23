@@ -535,6 +535,10 @@ function formatBytes(b) {
   }
   return `${b.toFixed(1)} ${u[i]}`;
 }
+function formatMillis(ms) {
+  if (!Number.isFinite(ms)) return "—";
+  return `${Math.round(ms).toLocaleString()} ms`;
+}
 
 function escapeHtml(s) {
   return s.replace(
