@@ -1,6 +1,17 @@
 let intervalId = null;
 let isRunning = false;
 let mode = "single"; // 'single' | 'multiple'
+const STORAGE_KEY = "psi_session_settings_v1";
+
+// Кеш посилань на елементи
+const urlEl = document.getElementById("url");
+const apiKeyEl = document.getElementById("apiKey");
+const strategyEl = document.getElementById("strategy");
+const strategyLbl = document.getElementById("strategyLabel");
+const modeToggleEl = document.getElementById("modeToggle"); // є у твоєму HTML
+const intervalEl = document.getElementById("interval");
+const urlListEl = document.getElementById("urlList"); // є лише в multiple-режимі
+const useProxyEl = document.getElementById("useProxy"); // є лише в multiple-режимі
 
 // ===== Event listeners =====
 document.getElementById("urlForm").addEventListener("submit", async (e) => {
@@ -27,9 +38,21 @@ document.getElementById("modeToggle").addEventListener("change", function () {
   document.getElementById("urlListWrap").classList.toggle("d-none", !multiple);
   document.getElementById("proxyWrap").classList.toggle("d-none", !multiple);
 });
+// Зберігати при зміні будь-якого налаштування
+urlEl?.addEventListener("input", saveSettings);
+apiKeyEl?.addEventListener("input", saveSettings);
+strategyEl?.addEventListener("change", saveSettings);
+modeToggleEl?.addEventListener("change", saveSettings);
+intervalEl?.addEventListener("change", saveSettings);
+urlListEl?.addEventListener("input", saveSettings);
+useProxyEl?.addEventListener("change", saveSettings);
+
+// Завантажити збережене при відкритті/перезавантаженні сторінки
+document.addEventListener("DOMContentLoaded", loadSettings);
 
 // ===== Main entry =====
 async function startTest() {
+  saveSettings();
   let baseUrl = document.getElementById("url").value.trim();
   let apiKey = document.getElementById("apiKey").value.trim();
   const strategy = document.getElementById("strategy").checked
@@ -410,4 +433,62 @@ function scrollToTable() {
   if (!table) return;
   const offset = table.getBoundingClientRect().top + window.pageYOffset - 100;
   window.scrollTo({ top: offset, behavior: "smooth" });
+}
+
+function saveSettings() {
+  const payload = {
+    url: urlEl?.value?.trim() || "",
+    apiKey: apiKeyEl?.value?.trim() || "",
+    strategyChecked: !!strategyEl?.checked,
+    mode: modeToggleEl?.checked ? "multiple" : "single",
+    interval: intervalEl?.value || "60",
+    urlList: urlListEl?.value || "",
+    useProxy: !!(useProxyEl && useProxyEl.checked),
+  };
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function loadSettings() {
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+
+    if (s.url) urlEl.value = s.url;
+    if (s.apiKey) apiKeyEl.value = s.apiKey;
+
+    strategyEl.checked = !!s.strategyChecked;
+    if (strategyLbl)
+      strategyLbl.innerText = strategyEl.checked
+        ? "Desktop Test"
+        : "Mobile Test";
+
+    // режим
+    if (typeof s.mode === "string") {
+      const multiple = s.mode === "multiple";
+      if (modeToggleEl) modeToggleEl.checked = multiple;
+      document.getElementById("modeLabel").innerText = multiple
+        ? "Multiple URLs"
+        : "Single URL";
+      document
+        .getElementById("intervalWrap")
+        .classList.toggle("d-none", multiple);
+      document.getElementById("countdown").classList.toggle("d-none", multiple);
+      const urlListWrap = document.getElementById("urlListWrap");
+      const proxyWrap = document.getElementById("proxyWrap");
+      if (urlListWrap) urlListWrap.classList.toggle("d-none", !multiple);
+      if (proxyWrap) proxyWrap.classList.toggle("d-none", !multiple);
+    }
+
+    if (s.interval && intervalEl) intervalEl.value = s.interval;
+    if (urlListEl && typeof s.urlList === "string") urlListEl.value = s.urlList;
+    if (useProxyEl && typeof s.useProxy === "boolean")
+      useProxyEl.checked = s.useProxy;
+  } catch (e) {
+    console.warn("Failed to parse session settings", e);
+  }
+}
+
+function clearSettings() {
+  sessionStorage.removeItem(STORAGE_KEY);
 }
