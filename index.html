@@ -109,12 +109,46 @@
               <table class="table mt-3">
                 <thead class="table-light">
                   <tr>
-                    <th>Time</th>
-                    <th>Performance</th>
-                    <th>FCP</th>
-                    <th>LCP</th>
-                    <th>TBT</th>
-                    <th>CLS</th>
+                    <th
+                      data-bs-toggle="tooltip"
+                      title="Status by overall score"
+                    >
+                      Status
+                    </th>
+                    <th data-bs-toggle="tooltip" title="Page URL">URL</th>
+                    <th data-bs-toggle="tooltip" title="PageSpeed Score">
+                      Score
+                    </th>
+                    <th data-bs-toggle="tooltip" title="Time to First Byte">
+                      TTFB
+                    </th>
+                    <th data-bs-toggle="tooltip" title="First Contentful Paint">
+                      FCP
+                    </th>
+                    <th
+                      data-bs-toggle="tooltip"
+                      title="Largest Contentful Paint"
+                    >
+                      LCP
+                    </th>
+                    <th
+                      data-bs-toggle="tooltip"
+                      title="Cumulative Layout Shift"
+                    >
+                      CLS
+                    </th>
+                    <th
+                      data-bs-toggle="tooltip"
+                      title="Total Blocking Time (~ First Input Delay)"
+                    >
+                      TBT
+                    </th>
+                    <th data-bs-toggle="tooltip" title="Size of all Resources">
+                      Size
+                    </th>
+                    <th data-bs-toggle="tooltip" title="Show details">
+                      Details
+                    </th>
                   </tr>
                 </thead>
                 <tbody id="metricsTableBody"></tbody>

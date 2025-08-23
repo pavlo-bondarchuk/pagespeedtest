@@ -49,6 +49,11 @@ useProxyEl?.addEventListener("change", saveSettings);
 
 // Завантажити збережене при відкритті/перезавантаженні сторінки
 document.addEventListener("DOMContentLoaded", loadSettings);
+document.addEventListener("DOMContentLoaded", () => {
+  [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(
+    (el) => new bootstrap.Tooltip(el)
+  );
+});
 
 // ===== Main entry =====
 async function startTest() {
@@ -177,13 +182,17 @@ async function safePSI(url, apiKey, strategy, tbody) {
     tbody.insertAdjacentHTML(
       "afterbegin",
       `<tr>
-        <td>${currentTime}</td>
-        <td class="error-cell">error</td>
-        <td class="error-cell">error</td>
-        <td class="error-cell">error</td>
-        <td class="error-cell">error</td>
-        <td class="error-cell">error</td>
-      </tr>`
+     <td class="error-cell">error</td>
+     <td class="error-cell">—</td>
+     <td class="error-cell">0</td>
+     <td class="error-cell">error</td>
+     <td class="error-cell">error</td>
+     <td class="error-cell">error</td>
+     <td class="error-cell">error</td>
+     <td class="error-cell">error</td>
+     <td class="error-cell">—</td>
+     <td class="error-cell">—</td>
+   </tr>`
     );
   }
 }
@@ -207,7 +216,12 @@ async function fetchPageSpeedInsights(pageUrl, apiKey, strategy) {
   const lcpText = audits["largest-contentful-paint"]?.displayValue || "error";
   const tbtText = audits["total-blocking-time"]?.displayValue || "error";
   const clsText = audits["cumulative-layout-shift"]?.displayValue || "error";
+  const ttfbText = audits["server-response-time"]?.displayValue || "error";
+  const sizeText =
+    audits["total-byte-weight"]?.displayValue || formatBytes(sizeNum);
 
+  const ttfbNum = audits["server-response-time"]?.numericValue; // ms
+  const sizeNum = audits["total-byte-weight"]?.numericValue; // bytes
   const fcpNum = audits["first-contentful-paint"]?.numericValue; // ms
   const lcpNum = audits["largest-contentful-paint"]?.numericValue; // ms
   const tbtNum = audits["total-blocking-time"]?.numericValue; // ms
@@ -218,18 +232,24 @@ async function fetchPageSpeedInsights(pageUrl, apiKey, strategy) {
     pageUrl
   )}&form_factor=${strategy}&report_id=${reportId}`;
 
-  const currentTime = new Date().toLocaleTimeString();
+  const status = statusByScore(score);
 
   const rowHtml = `
-    <tr>
-      <td><a href="${testUrl}" target="_blank">${currentTime}</a></td>
-      <td>${score}</td>
-      <td class="${classByMetric(fcpText, "fcp", fcpNum)}">${fcpText}</td>
-      <td class="${classByMetric(lcpText, "lcp", lcpNum)}">${lcpText}</td>
-      <td class="${classByMetric(tbtText, "tbt", tbtNum)}">${tbtText}</td>
-      <td class="${classByMetric(clsText, "cls", clsNum)}">${clsText}</td>
-    </tr>
-  `;
+  <tr>
+    <td class="${status.cls}">${status.text}</td>
+    <td><a href="${pageUrl}" target="_blank" class="text-decoration-underline">${escapeHtml(
+    pageUrl
+  )}</a></td>
+    <td>${score}</td>
+    <td class="${classByMetric(ttfbText, "ttfb", ttfbNum)}">${ttfbText}</td>
+    <td class="${classByMetric(fcpText, "fcp", fcpNum)}">${fcpText}</td>
+    <td class="${classByMetric(lcpText, "lcp", lcpNum)}">${lcpText}</td>
+    <td class="${classByMetric(clsText, "cls", clsNum)}">${clsText}</td>
+    <td class="${classByMetric(tbtText, "tbt", tbtNum)}">${tbtText}</td>
+    <td>${sizeText}</td>
+    <td><a href="${testUrl}" target="_blank" class="text-decoration-underline">Open</a></td>
+  </tr>
+`;
   tbody.insertAdjacentHTML("afterbegin", rowHtml);
 }
 
@@ -249,6 +269,10 @@ function classByMetric(displayText, metric, numericValue) {
     case "cls":
       if (numericValue <= 0.1) return "fast";
       if (numericValue <= 0.25) return "average";
+      return "slow";
+    case "ttfb": // NEW
+      if (numericValue <= 200) return "fast";
+      if (numericValue <= 500) return "average";
       return "slow";
     default:
       return "";
@@ -491,4 +515,31 @@ function loadSettings() {
 
 function clearSettings() {
   sessionStorage.removeItem(STORAGE_KEY);
+}
+
+function statusByScore(score) {
+  if (score >= 90) return { text: "Good", cls: "fast" };
+  if (score >= 50) return { text: "Average", cls: "average" };
+  return { text: "Poor", cls: "slow" };
+}
+
+function formatBytes(b) {
+  if (!Number.isFinite(b)) return "—";
+  const u = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  while (b >= 1024 && i < u.length - 1) {
+    b /= 1024;
+    i++;
+  }
+  return `${b.toFixed(1)} ${u[i]}`;
+}
+
+function escapeHtml(s) {
+  return s.replace(
+    /[&<>"']/g,
+    (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        m
+      ])
+  );
 }
