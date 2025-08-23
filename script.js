@@ -214,20 +214,19 @@ async function fetchPageSpeedInsights(pageUrl, apiKey, strategy) {
     (data?.lighthouseResult?.categories?.performance?.score || 0) * 100
   );
 
-  const fcpText = audits["first-contentful-paint"]?.displayValue || "error";
-  const lcpText = audits["largest-contentful-paint"]?.displayValue || "error";
-  const tbtText = audits["total-blocking-time"]?.displayValue || "error";
-  const clsText = audits["cumulative-layout-shift"]?.displayValue || "error";
-  const ttfbText = audits["server-response-time"]?.displayValue || "error";
-  const sizeText =
-    audits["total-byte-weight"]?.displayValue || formatBytes(sizeNum);
-
   const ttfbNum = audits["server-response-time"]?.numericValue; // ms
   const sizeNum = audits["total-byte-weight"]?.numericValue; // bytes
   const fcpNum = audits["first-contentful-paint"]?.numericValue; // ms
   const lcpNum = audits["largest-contentful-paint"]?.numericValue; // ms
   const tbtNum = audits["total-blocking-time"]?.numericValue; // ms
   const clsNum = audits["cumulative-layout-shift"]?.numericValue; // unitless
+
+  const fcpText = audits["first-contentful-paint"]?.displayValue || "error";
+  const lcpText = audits["largest-contentful-paint"]?.displayValue || "error";
+  const tbtText = audits["total-blocking-time"]?.displayValue || "error";
+  const clsText = audits["cumulative-layout-shift"]?.displayValue || "error";
+  const ttfbText = Number.isFinite(ttfbNum) ? formatMillis(ttfbNum) : "error"; // "3,330 ms"
+  const sizeText = Number.isFinite(sizeNum) ? formatBytes(sizeNum) : "—"; // "1.7 MB"/"1,693 KiB"
 
   const reportId = data?.lighthouseResult?.id || "";
   const testUrl = `https://pagespeed.web.dev/report?url=${encodeURIComponent(
